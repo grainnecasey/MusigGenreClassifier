@@ -37,12 +37,12 @@ from sklearn.metrics import (
 
 data = pd.read_csv("joined_data.csv")
 
-genres_master_list = ['rock', 'pop', 'hip hop', 'classical', 'country', 'alternative', 'jazz', 'edm', 'metal']
+genres_master_list = ['rock', 'pop', 'hip hop', 'classical', 'country', 'alternative', 'jazz', 'edm', 'metal'] #
 
 equal_dist_df = pd.DataFrame(columns=data.columns)
 
 for genre in genres_master_list:
-    rows_of_genre = data.loc[data['new_genres'] == genre].sample(1000)
+    rows_of_genre = data.loc[data['new_genres'] == genre].sample(4000)
     equal_dist_df = equal_dist_df.append(rows_of_genre)
 
 print(equal_dist_df['new_genres'].value_counts())
@@ -50,7 +50,7 @@ print(equal_dist_df['new_genres'].value_counts())
 
 data = equal_dist_df
 
-data = data.drop(["id", "name", "release_date", "year", "mode", 'duration_ms'], axis = 1)
+data = data.drop(["id", "name", "release_date", "year", "mode", 'duration_ms', 'liveness'], axis = 1)
 X = data.iloc[:,:-1]
 y = data["new_genres"]
 
@@ -82,8 +82,6 @@ X_train = preprocessing.scale(X_train)
 clf = LogisticRegression(random_state=0).fit(X_train, y_train)
 clf.score(X_train, y_train)
 
-print(clf.coef_)
-
 test_pred = clf.predict(X_test)
 train_pred = clf.predict(X_train)
 test_acc = (accuracy_score(test_pred, y_test))
@@ -98,10 +96,14 @@ train_recall = recall_score(y_train, train_pred, average='weighted')
 print("Training snapshot")
 df = pd.DataFrame({"Actual": y_train, "Predicted": train_pred})
 print(df.head())
+print("Training classification report:")
+print(classification_report(y_train, train_pred, labels=genres_master_list))
 
 print("Testing snapshot")
 df = pd.DataFrame({"Actual": y_test, "Predicted": test_pred})
 print(df.head())
+print("Testing classification report:")
+print(classification_report(y_test, test_pred, labels=genres_master_list))
 
 print("Train Accuracy:", train_acc)
 print("Train Error:", train_error)
@@ -115,38 +117,50 @@ print("Test Precision:", test_prec)
 print("-----------------------------------------")
 
 
-# In[ ]:
+#In[ ]:
 
-#
-# n_classifiers = [10, 50, 100]
-#
-# for n in n_classifiers:
-#     ada = AdaBoostClassifier(
-#         DecisionTreeClassifier(max_depth = 1),
-#         n_estimators = n, learning_rate = 1, random_state = 1)
-#     ada.fit(X_train, y_train)
-#     test_pred = ada.predict(X_test)
-#     train_pred = ada.predict(X_train)
-#     test_acc = (accuracy_score(test_pred, y_test))
-#     test_error = 1 - test_acc
-#     train_acc = (accuracy_score(train_pred, y_train))
-#     train_error = (1 - train_acc)
-#     test_prec = precision_score(y_test, test_pred, average='weighted')
-#     test_recall = recall_score(y_test, test_pred, average='weighted')
-#     train_prec = precision_score(y_train, train_pred, average='weighted')
-#     train_recall = recall_score(y_train, train_pred, average='weighted')
-#     print(n, "Classifiers:")
-#     print("Test Accuracy:", test_acc)
-#     print("Test Error:", test_error)
-#     print("Test Recall:", test_recall)
-#     print("Test Precision:", test_prec)
-#     print("-----------------------------------------")
-#     print("Train Accuracy:", train_acc)
-#     print("Train Error:", train_error)
-#     print("Train Recall:", train_recall)
-#     print("Train Precision:", train_prec)
-#     print("-----------------------------------------")
-#     print("\n")
+print("==================== Ada Boost ====================")
+n_classifiers = [10, 50, 100]
+
+for n in n_classifiers:
+    ada = AdaBoostClassifier(
+        DecisionTreeClassifier(max_depth = 1),
+        n_estimators = n, learning_rate = 1, random_state = 1)
+    ada.fit(X_train, y_train)
+    test_pred = ada.predict(X_test)
+    train_pred = ada.predict(X_train)
+    test_acc = (accuracy_score(test_pred, y_test))
+    test_error = 1 - test_acc
+    train_acc = (accuracy_score(train_pred, y_train))
+    train_error = (1 - train_acc)
+    test_prec = precision_score(y_test, test_pred, average='weighted')
+    test_recall = recall_score(y_test, test_pred, average='weighted')
+    train_prec = precision_score(y_train, train_pred, average='weighted')
+    train_recall = recall_score(y_train, train_pred, average='weighted')
+    print("Training snapshot")
+    df = pd.DataFrame({"Actual": y_train, "Predicted": train_pred})
+    print(df.head())
+    print("Training classification report:")
+    print(classification_report(y_train, train_pred, labels=genres_master_list))
+
+    print("Testing snapshot")
+    df = pd.DataFrame({"Actual": y_test, "Predicted": test_pred})
+    print(df.head())
+    print("Testing classification report:")
+    print(classification_report(y_test, test_pred, labels=genres_master_list))
+
+    print(n, "Classifiers:")
+    print("Test Accuracy:", test_acc)
+    print("Test Error:", test_error)
+    print("Test Recall:", test_recall)
+    print("Test Precision:", test_prec)
+    print("-----------------------------------------")
+    print("Train Accuracy:", train_acc)
+    print("Train Error:", train_error)
+    print("Train Recall:", train_recall)
+    print("Train Precision:", train_prec)
+    print("-----------------------------------------")
+    print("\n")
 #
 #
 # # In[ ]:
