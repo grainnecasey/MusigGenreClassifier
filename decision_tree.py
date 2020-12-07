@@ -8,6 +8,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     accuracy_score,
+    confusion_matrix,
+    multilabel_confusion_matrix,
+    plot_confusion_matrix,
+    precision_score,
+    recall_score,
 )
 from sklearn.metrics import classification_report
 
@@ -18,7 +23,7 @@ print(joined_data.info())
 
 print(joined_data['new_genres'].value_counts())
 
-genres_master_list = ['rock', 'pop', 'hip hop', 'country', 'alternative', 'jazz', 'edm', 'metal'] #'classical',
+genres_master_list = ['rock', 'pop', 'hip hop', 'classical', 'country', 'alternative', 'jazz', 'edm', 'metal'] #'classical',
 
 equal_dist_df = pd.DataFrame(columns=joined_data.columns)
 
@@ -28,7 +33,7 @@ for genre in genres_master_list:
 
 print(equal_dist_df['new_genres'].value_counts())
 
-equal_dist_df = equal_dist_df.drop(["id", "name", "release_date", "year", "mode", 'duration_ms', 'liveness'], axis = 1)
+equal_dist_df = equal_dist_df.drop(["id", "name", "release_date", "mode", 'duration_ms', 'liveness', 'key'], axis = 1)
 
 Y = equal_dist_df[equal_dist_df.columns[-1]]
 X = equal_dist_df.drop(columns=[equal_dist_df.columns[-1]])
@@ -41,7 +46,8 @@ X_scaled_df = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
 
 x_train, x_test, y_train, y_test = train_test_split(X_scaled_df, Y, test_size=.25)
 
-max_depth = [1, 5, 10, 15, 20, 30]
+max_depth = [1, 5, 10, 15]
+
 
 for depth in max_depth:
     print("======================")
@@ -67,13 +73,27 @@ for depth in max_depth:
     print("Testing:")
     y_predict_test = decision_tree.predict(x_test)
     test_df = pd.DataFrame(data=y_predict_test)
-    # print("predictions:")
-    # print(test_df.value_counts())
-    # print("actual:")
-    # print(y_test.value_counts())
+    print("predictions:")
+    print(test_df.value_counts())
+    print("actual:")
+    print(y_test.value_counts())
+    print("Testing classification report:")
     print(classification_report(y_test, y_predict_test, labels=genres_master_list))
+    plot_confusion_matrix(decision_tree, x_test, y_test, labels=genres_master_list, xticks_rotation='vertical')
+    # print("Testing confusion matrix:")
+    # test_confusion_matrix = confusion_matrix(y_test, y_predict_test, labels=genres_master_list)
+    # print(confusion_matrix(y_test, y_predict_test))
+    # print("multilabel confusion matrix")
+    # print(genres_master_list)
+    # print(multilabel_confusion_matrix(y_test, y_predict_test, labels=genres_master_list))
     df = pd.DataFrame({"Actual": y_test, "Predicted": y_predict_test})
     print(df.head())
     test_error = 1 - accuracy_score(y_test, y_predict_test)
+    test_prec = precision_score(y_test, y_predict_test, average='weighted')
+    test_recall = recall_score(y_test, y_predict_test, average='weighted')
     print("test error", test_error)
+    print("test precision:", test_prec)
+    print("test recall:", test_recall)
     print("depth: ", decision_tree.get_depth())
+
+plt.show()
